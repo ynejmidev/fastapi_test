@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
-from fastapi import Depends
+from fastapi import Depends, status
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

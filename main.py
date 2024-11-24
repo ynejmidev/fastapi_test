@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, FastAPI
-
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from utils import *
 
