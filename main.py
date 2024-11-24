@@ -1,13 +1,12 @@
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
-from fastapi.security import OAuth2PasswordBearer
+
+from utils import get_current_user, User
 
 app = FastAPI()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-
-@app.get("/items/")
-async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
-    return {"token": token}
+@app.get("/users/me")
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
+    return current_user
