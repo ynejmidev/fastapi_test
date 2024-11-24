@@ -21,7 +21,14 @@
           with pkgs;
           mkShell {
             buildInputs = [
-              uv
+              (pkgs.python3.withPackages (python-pkgs: [
+                python-pkgs.fastapi
+                python-pkgs.passlib
+                python-pkgs.pyjwt
+                python-pkgs.requests
+                python-pkgs.pydantic
+                python-pkgs.python-multipart #???????
+              ]))
             ];
           };
       }
