@@ -46,11 +46,9 @@ class UserUpdate(UserBase):
     full_name: str
 
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+sqlite_url = "postgresql://postgres:postgres@localhost:5432"
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
+engine = create_engine(sqlite_url)
 
 
 def create_db_and_tables():
