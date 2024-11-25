@@ -1,6 +1,5 @@
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
 from fastapi import Depends, status, HTTPException
 from auth import get_token_data, verify_password
 
@@ -20,18 +19,31 @@ fake_users_db = {
 }
 
 
-class User(SQLModel, table=True):
-    username: str = Field(primary_key=True, max_length=16)
+class UserBase(SQLModel):
+    username: str = Field(max_length=16)
+    disabled: bool = Field(default=False)
+    full_name: str
+
+
+class User(UserBase, table=True):
+    id: int = Field(primary_key=True, default=None)
+    full_name: str
+    email: str
+
+
+class UserPublic(UserBase):
+    id: int
+    full_name: str
+
+
+class UserCreate(UserBase):
+    email: str
+
+
+class UserUpdate(UserBase):
+    username: str
     email: str
     full_name: str
-    disabled: bool = Field(default=False)
-
-
-# class Hero(SQLModel, table=True):
-#     id: int | None = Field(default=None, primary_key=True)
-#     name: str = Field(index=True)
-#     age: int | None = Field(default=None, index=True)
-#     secret_name: str
 
 
 sqlite_file_name = "database.db"
