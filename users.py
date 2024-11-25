@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from fastapi import Depends, status, HTTPException
 from auth import get_token_data, verify_password
 
+from fastapi import Depends, FastAPI, HTTPException, Query
+from sqlmodel import Field, Session, SQLModel, create_engine, select
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 fake_users_db = {
@@ -17,11 +20,37 @@ fake_users_db = {
 }
 
 
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
+class User(SQLModel, table=True):
+    username: str = Field(primary_key=True, max_length=16)
+    email: str
+    full_name: str
+    disabled: bool = Field(default=False)
+
+
+# class Hero(SQLModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     name: str = Field(index=True)
+#     age: int | None = Field(default=None, index=True)
+#     secret_name: str
+
+
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+connect_args = {"check_same_thread": False}
+engine = create_engine(sqlite_url, connect_args=connect_args)
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
 class UserInDB(User):
@@ -49,7 +78,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 def authenticate_user(fake_db, username: str, password: str):
     user = get_user(fake_db, username)
-    # print(password,'aaaaaaaaaaaaa')
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
