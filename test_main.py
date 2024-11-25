@@ -9,4 +9,7 @@ def test_token():
         "password": "secret",
     }
     x = requests.post("http://localhost:8000/token", data)
+    res = x.json()
     assert x.status_code == 200
+    assert res["token_type"].lower() == "bearer"
+

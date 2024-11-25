@@ -21,14 +21,18 @@
           with pkgs;
           mkShell {
             buildInputs = [
-              (pkgs.python3.withPackages (python-pkgs: [
-                python-pkgs.fastapi
-                python-pkgs.passlib
-                python-pkgs.pyjwt
-                python-pkgs.requests
-                python-pkgs.pydantic
-                python-pkgs.python-multipart #???????
-              ]))
+              (pkgs.python3.withPackages (
+                python-pkgs: with python-pkgs; [
+                  python-multipart # ???????
+                  requests
+                  pydantic
+                  fastapi
+                  pyjwt
+                  passlib
+                  sqlmodel
+                  pytest
+                ]
+              ))
             ];
           };
       }
