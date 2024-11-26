@@ -19,8 +19,10 @@ def read_users(
 def create_user(user_create: UserCreate, session: SessionDep):
     exists = get_user(session, user_create.username)
     if exists:
-        raise HTTPException(status_code=404, detail="User already exists")
-    db_user = User.model_validate(user_create, update={"hashed_password": get_password_hash(user_create.password)})
+        raise HTTPException(status_code=400, detail="User already exists")
+    db_user = User.model_validate(
+        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+    )
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
