@@ -31,6 +31,8 @@
                   passlib
                   sqlmodel
                   pytest
+                  faker
+                  psycopg2
                 ]
               ))
             ];
