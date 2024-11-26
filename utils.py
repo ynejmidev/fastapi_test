@@ -156,24 +156,3 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 SECRET_KEY = "3402751aab4a5d55d02e6e812db0d32d4b3942dae74f6648fe7b630e3df043ec"
 
 ALGORITHM = "HS256"
-
-
-# async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="Could not validate credentials",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     token_data = get_token_data(token, credentials_exception)
-#     user = get_user(session, username=token_data.username)
-#     if user is None:
-#         raise credentials_exception
-#     return user
-#
-#
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)],
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
