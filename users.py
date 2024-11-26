@@ -1,12 +1,4 @@
-from fastapi.routing import APIRouter
-
-from sqlmodel import  select
-
-from typing import Annotated
-
-from fastapi import HTTPException, Query
-
-from auth import SessionDep, get_password_hash
+from fastapi import Query, APIRouter
 
 from utils import *
 
