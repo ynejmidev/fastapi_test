@@ -43,16 +43,16 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: str
+    id: int
 
 
 def get_token_data(token, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        id: int = payload.get("sub")
         # if username is None:
         #     raise credentials_exception
-        return TokenData(username=username)
+        return TokenData(id=id)
     except InvalidTokenError:
         raise credentials_exception
 
@@ -137,13 +137,13 @@ def get_user(session, username):
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        token_data = TokenData(**payload)
+        token_data = TokenData(id=payload["sub"])
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
             status_code=403,
             detail="Could not validate credentials",
         )
-    user = session.get(User, token_data.username)
+    user = session.get(User, token_data.id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:
