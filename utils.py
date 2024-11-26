@@ -37,7 +37,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -88,7 +87,6 @@ def authenticate_user(session: SessionDep, username: str, password: str):
     if not verify_password(password, user.hashed_password):
         return False
     return user
-
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
