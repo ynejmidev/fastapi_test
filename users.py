@@ -17,9 +17,12 @@ def read_users(
 
 @router.post("/", response_model=UserPublic)
 def create_user(user_create: UserCreate, session: SessionDep):
-    exists = get_user(session, user_create.username)
-    if exists:
-        raise HTTPException(status_code=400, detail="User already exists")
+    user_exists = get_user(session, user_create.username)
+    if user_exists:
+        raise HTTPException(status_code=400, detail="username already exists")
+    email_exists = get_user_by_email(session, user_create.email)
+    if email_exists:
+        raise HTTPException(status_code=400, detail="email already exists")
     db_user = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
     )

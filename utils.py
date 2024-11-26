@@ -122,6 +122,12 @@ class UserUpdate(UserBase):
 # class UserInDB(User):
 
 
+def get_user_by_email(session, email):
+    statement = select(User).where(User.email == email)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
 def get_user(session, username):
     statement = select(User).where(User.username == username)
     session_user = session.exec(statement).first()
