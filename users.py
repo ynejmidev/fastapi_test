@@ -31,6 +31,12 @@ def create_user(user_create: UserCreate, session: SessionDep):
     session.refresh(db_user)
     return db_user
 
+@router.get("/me", response_model=UserPublic)
+def read_user_me(current_user: CurrentUser):
+    """
+    Get current user.
+    """
+    return current_user
 
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user(user_id: int, session: SessionDep):
