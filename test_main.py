@@ -15,10 +15,7 @@ def test_main():
 
     me = requests.get(
         "http://localhost:8000/users/me",
-        headers={
-            "Authorization": "Bearer " + res["access_token"]
-        },
+        headers={"Authorization": "Bearer " + res["access_token"]},
     )
-
 
     assert me.status_code == 200
