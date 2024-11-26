@@ -1,103 +1,66 @@
+from fastapi.routing import APIRouter
+
+from sqlmodel import  select
+
 from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends, status, HTTPException
-from auth import get_token_data, verify_password
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from fastapi import HTTPException, Query
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from auth import SessionDep, get_password_hash
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
+from utils import *
+
+router = APIRouter()
 
 
-class UserBase(SQLModel):
-    username: str = Field(max_length=16)
-    disabled: bool = Field(default=False)
-    full_name: str
-
-
-class User(UserBase, table=True):
-    id: int = Field(primary_key=True, default=None)
-    full_name: str
-    email: str
-
-
-class UserPublic(UserBase):
-    id: int
-    full_name: str
-
-
-class UserCreate(UserBase):
-    email: str
-
-
-class UserUpdate(UserBase):
-    username: str
-    email: str
-    full_name: str
-
-
-sqlite_url = "postgresql://postgres:postgres@localhost:5432"
-
-engine = create_engine(sqlite_url)
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    token_data = get_token_data(token, credentials_exception)
-    user = get_user(fake_users_db, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
+@router.get("/", response_model=list[UserPublic])
+def read_users(
+    session: SessionDep,
+    offset: int = 0,
+    limit: Annotated[int, Query(le=100)] = 100,
 ):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    users = session.exec(select(User).offset(offset).limit(limit)).all()
+    return users
+
+
+@router.post("/", response_model=UserPublic)
+def create_user(user_create: UserCreate, session: SessionDep):
+    exists = get_user(session, user_create.username)
+    if exists:
+        raise HTTPException(status_code=404, detail="User already exists")
+    db_user = User.model_validate(user_create, update={"hashed_password": get_password_hash(user_create.password)})
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+
+
+@router.get("/{user_id}", response_model=UserPublic)
+def read_user(user_id: int, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    session.delete(user)
+    session.commit()
+    return {"ok": True}
+
+
+@router.patch("/{user_id}", response_model=UserPublic)
+def update_user(user_id: int, user: UserUpdate, session: SessionDep):
+    user_db = session.get(User, user_id)
+    if not user_db:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_data = user.model_dump(exclude_unset=True)
+    user_db.sqlmodel_update(user_data)
+    session.add(user_db)
+    session.commit()
+    session.refresh(user_db)
+    return user_db
