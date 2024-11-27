@@ -113,7 +113,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class UserBase(SQLModel):
     username: str = Field(unique=True, index=True, max_length=32)
-    email: str = Field(unique=True)
+    email: str = Field(unique=True, default=None)
     is_admin: bool = Field(default=False)
 
 
