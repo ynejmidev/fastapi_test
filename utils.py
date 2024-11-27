@@ -124,7 +124,7 @@ class User(UserBase, table=True):
 
 
 class UserPublic(UserBase):
-    username: str
+    id: int
 
 
 class UserCreate(UserBase):
