@@ -22,16 +22,35 @@ sqlite_url = "postgresql+psycopg2://postgres:postgres@localhost:5432"
 engine = create_engine(sqlite_url)
 
 
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-
 def get_session():
     with Session(engine) as session:
         yield session
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
+def create_admin_user():
+    session = next(get_session())
+    admin_exists = get_user(session, "admin")
+    if admin_exists:
+        return
+    admin_create = UserCreate(
+        username="admin", email="admin@admin.admin", is_admin=True, password="admin123"
+    )
+    db_user = User.model_validate(
+        admin_create,
+        update={"hashed_password": get_password_hash(admin_create.password)},
+    )
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
