@@ -1,8 +1,11 @@
 from fastapi import FastAPI
+from starlette.middleware import Middleware
 
+from middleware.time import TimerMiddleware
 import users, auth
 
-app = FastAPI()
+middleware = [Middleware(TimerMiddleware)]
+app = FastAPI(middleware=middleware)
 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -23,6 +26,6 @@ async def request_validation_exception_handler(_, exc: RequestValidationError):
     return JSONResponse(err, status_code=400)
 
 
-app.add_exception_handler
+# app.add_middleware()
 app.include_router(auth.router)
 app.include_router(users.router, prefix="/users")
