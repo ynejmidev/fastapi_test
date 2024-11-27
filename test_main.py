@@ -56,7 +56,7 @@ def test_add_users():
         UNDERLINE = "\033[4m"
 
     print(
-        bcolors.OKGREEN, "START", bcolors.ENDC
+        bcolors.OKGREEN, "START", bcolors.ENDC, flush=True, end=""
     )  # .2sec/req... HOWWWWWWW what? localhost??
     start_time = time.perf_counter()
 
@@ -66,7 +66,13 @@ def test_add_users():
         assert res.json()["username"] == user["username"]
 
     process_time = time.perf_counter() - start_time
-    print(bcolors.OKCYAN, process_time, bcolors.ENDC)
+    print(
+        bcolors.OKCYAN,
+        "{:.2f}".format(process_time) + " sec",
+        bcolors.ENDC,
+        end="",
+        flush=True,
+    )
 
     # for user in users:
     #     print(user["id"])
