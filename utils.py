@@ -121,7 +121,6 @@ class User(UserBase, table=True):
     id: int = Field(primary_key=True, default=None)
     username: str
     hashed_password: str
-    is_active: bool = Field(default=True)
 
 
 class UserPublic(UserBase):
@@ -133,12 +132,8 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    email: str
-    username: str
-    password: str
-
-
-# class UserInDB(User):
+    username: str | None = Field(default=None, max_length=32)  # type: ignore
+    password: str | None = Field(default=None, min_length=8)
 
 
 def get_user_by_email(session, email):
