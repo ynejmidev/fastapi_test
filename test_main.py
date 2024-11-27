@@ -140,6 +140,5 @@ def test_admin_delete():
         url,
         headers={"Authorization": "Bearer " + admin.token},
     )
-    print(before_res.status_code)
-    print(update_res.status_code)
-    # assert before_res.json()["username"] != update_res.json()["username"]
+    assert before_res.status_code == 200
+    assert update_res.status_code == 404
