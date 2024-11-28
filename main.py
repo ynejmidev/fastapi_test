@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware import Middleware
 
 from middleware.time import TimerMiddleware
-import users, auth
+from routes import users, auth
 
 middleware = [Middleware(TimerMiddleware)]
 app = FastAPI(middleware=middleware)
