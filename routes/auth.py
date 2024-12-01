@@ -1,6 +1,16 @@
-from fastapi import APIRouter
+from datetime import timedelta
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from utils import *
+
+from models.auth import Token
+from utils.other import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    authenticate_user,
+    SessionDep,
+    create_access_token,
+)
+from utils.database import create_admin_user, create_db_and_tables
 
 router = APIRouter()
 

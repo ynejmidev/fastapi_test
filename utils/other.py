@@ -1,21 +1,16 @@
-from sqlmodel import select
-
-from typing import Annotated
-
-from fastapi import HTTPException
-
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from pydantic import BaseModel, ValidationError
-from sqlmodel import Session, SQLModel, create_engine
+from pydantic import ValidationError
+from sqlmodel import select
+from sqlmodel import Session, create_engine
 from typing import Annotated
 import jwt
-from sqlmodel import Field, SQLModel, select
 
+from models.auth import TokenData
+from models.users import *
 
 sqlite_url = "postgresql+psycopg2://postgres:postgres@localhost:5432"
 
@@ -29,40 +24,9 @@ def get_session():
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-
-def create_admin_user():
-    session = next(get_session())
-    admin_exists = get_user(session, "admin")
-    if admin_exists:
-        return
-    admin_create = UserCreate(
-        username="admin", email="admin@admin.admin", is_admin=True, password="admin123"
-    )
-    db_user = User.model_validate(
-        admin_create,
-        update={"hashed_password": get_password_hash(admin_create.password)},
-    )
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    id: int
 
 
 def get_token_data(token, credentials_exception):
@@ -111,31 +75,6 @@ def authenticate_user(session: SessionDep, username: str, password: str):
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-class UserBase(SQLModel):
-    username: str = Field(unique=True, index=True, max_length=32)
-    email: str = Field(unique=True, default=None)
-    is_admin: bool = Field(default=False)
-
-
-class User(UserBase, table=True):
-    id: int = Field(primary_key=True, default=None)
-    username: str
-    hashed_password: str
-
-
-class UserPublic(UserBase):
-    id: int
-
-
-class UserCreate(UserBase):
-    password: str = Field(min_length=8)
-
-
-class UserUpdate(UserBase):
-    username: str | None = Field(default=None, max_length=32)  # type: ignore
-    password: str | None = Field(default=None, min_length=8)
-
-
 def get_user_by_email(session, email):
     statement = select(User).where(User.email == email)
     session_user = session.exec(statement).first()
@@ -143,9 +82,12 @@ def get_user_by_email(session, email):
 
 
 def get_user(session, username):
-    statement = select(User).where(User.username == username)
-    session_user = session.exec(statement).first()
-    return session_user
+    try:
+        statement = select(User).where(User.username == username)
+        session_user = session.exec(statement).first()
+        return session_user
+    except Exception as e:
+        print(e)
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:

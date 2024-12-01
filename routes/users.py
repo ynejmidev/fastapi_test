@@ -1,6 +1,6 @@
 from fastapi import Query, APIRouter
 
-from utils import *
+from utils.other import *
 
 router = APIRouter()
 
