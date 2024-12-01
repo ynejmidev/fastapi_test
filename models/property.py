@@ -62,7 +62,7 @@ class Agent(SQLModel, table=True):
 
 
 # Main Propriete model (real estate listing)
-class Propriete(SQLModel, table=True):
+class ProprieteBase(SQLModel):
     titre: str
     description: str
     type: str
@@ -76,18 +76,33 @@ class Propriete(SQLModel, table=True):
     date_construction: datetime
     date_ajout: datetime
 
+
+class ProprieteUpdate(ProprieteBase):
+    pass
+
+
+class ProprieteCreate(ProprieteBase):
+    pass
+
+
+class ProprietePublic(ProprieteBase):
+    id: int
+    user: User | None = Relationship(back_populates="propriete")
+    agent: Agent = Relationship(back_populates="deals")
+
+
+class Propriete(ProprieteBase, table=True):
+    id: int | None = Field(primary_key=True, default=None)
+    user: User | None = Relationship(back_populates="propriete")
+    agent: Agent = Relationship(back_populates="deals")
     # Relationships
     adresses: list["Adresse"] = Relationship(back_populates="propriete")
     coordonnees: list["Coordonnees"] = Relationship(back_populates="propriete")
     superficies: list["Superficie"] = Relationship(back_populates="propriete")
     photos: list["Photo"] = Relationship(back_populates="propriete")
     amenagements: list["Amenagement"] = Relationship(back_populates="propriete")
-
     agent_id: int | None = Field(default=None, foreign_key="agent.id")
-    agent: Agent = Relationship(back_populates="deals")
     user_id: int | None = Field(default=None, foreign_key="user.id")
-    id: int | None = Field(primary_key=True, default=None)
-    user: User | None = Relationship(back_populates="propriete")
 
 
 # Models for related entities
