@@ -82,12 +82,9 @@ def get_user_by_email(session, email):
 
 
 def get_user(session, username):
-    try:
-        statement = select(User).where(User.username == username)
-        session_user = session.exec(statement).first()
-        return session_user
-    except Exception as e:
-        print(e)
+    statement = select(User).where(User.username == username)
+    session_user = session.exec(statement).first()
+    return session_user
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
